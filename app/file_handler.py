@@ -10,7 +10,7 @@ import json
 import logging
 import sys
 import os
-from typing import Union
+from typing import Union, Generator
 
 # Add PyMuPDF for PDF handling
 import fitz
@@ -25,6 +25,33 @@ def read_large_file_in_chunks(file_path: str, chunk_size: int = 1024*1024) -> Ge
                 break
             yield chunk
         
+## 2. New `read_yaml_file` for `file_handler.py`
+
+def read_yaml_file(file_path: str) -> dict:
+    """
+    Read and parse a YAML file.
+
+    Args:
+        file_path (str): Path to the YAML file.
+
+    Returns:
+        dict: Parsed YAML content.
+    """
+    try:
+        import yaml
+        with open(file_path, "r", encoding="utf-8") as f:
+            yaml_content = yaml.safe_load(f)
+        logging.info("Successfully read YAML file: %s", file_path)
+        return yaml_content
+    except ImportError:
+        logging.error("PyYAML package not installed. Cannot parse YAML file.")
+        raise
+    except Exception as e:
+        logging.error("Error reading YAML file '%s': %s", file_path, e)
+        raise
+import yaml
+
+    
 def read_text_file(file_path: str) -> str:
     """
     Read and return the content of a text file.
@@ -34,9 +61,6 @@ def read_text_file(file_path: str) -> str:
 
     Returns:
         str: Contents of the file.
-
-    Exits:
-        If the file cannot be read.
     """
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -45,7 +69,7 @@ def read_text_file(file_path: str) -> str:
         return content
     except Exception as e:
         logging.error("Error reading file '%s': %s", file_path, e)
-        sys.exit(1)
+        raise
 
 def read_pdf_file(file_path: str) -> str:
     """
@@ -103,9 +127,6 @@ def save_json_file(data: dict, file_path: str) -> None:
     Args:
         data (dict): Data to write.
         file_path (str): Target file path.
-
-    Exits:
-        In case of an error during file writing.
     """
     try:
         with open(file_path, "w", encoding="utf-8") as f:
@@ -113,4 +134,4 @@ def save_json_file(data: dict, file_path: str) -> None:
         logging.info("Successfully saved JSON output to '%s'", file_path)
     except Exception as e:
         logging.error("Error writing JSON to '%s': %s", file_path, e)
-        sys.exit(1)
+        raise

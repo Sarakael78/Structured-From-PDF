@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 import google.generativeai as palm  # Google AI
 from openai import OpenAI  # Modern import
 from utils import retry_with_backoff
-
+import openai   
 
 class ModelFactory:
     """Factory class for creating model handlers based on provider"""

@@ -16,6 +16,9 @@ from file_handler import read_file, save_json_file
 from prompt_generator import generate_prompt
 from ai_model_handler import call_ai_model
 from response_validator import validate_response
+from prompt_generator import generatePromptFromYaml
+from file_validator import FileValidator    
+from file_handler import read_yaml_file
 
 
 class BatchProcessor:
@@ -45,29 +48,36 @@ class BatchProcessor:
 
 
     def process_directory(self, input_dir: str, output_dir: str, file_pattern: str = "*.txt|*.pdf") -> Dict[str, Any]:
-        """
-        Process all matching files in a directory.  Now handles both
-        .txt and .pdf files.
-
+        """Process all matching files in a directory.
         Args:
             input_dir (str): Directory containing input files.
             output_dir (str): Directory to save output files.
-            file_pattern (str): Glob pattern to match input files.  Defaults to both .txt and .pdf.
+            file_pattern (str): Glob pattern(s) to match input files separated by '|'. Defaults to both .txt and .pdf.
 
         Returns:
             Dict[str, Any]: Summary of processing results.
         """
         # Create output directory if it doesn't exist
         os.makedirs(output_dir, exist_ok=True)
-
-        # Find all matching files
+        
+        # Use file_validator for proper validation
+        file_validator = FileValidator([".txt", ".pdf"])
+        if not file_validator.is_valid_directory_path(input_dir):
+            logging.error(f"Invalid input directory: {input_dir}")
+            return {"success": 0, "failed": 0, "total": 0}
+            
+        # Process files with validation
+        input_files = [f for f in Path(input_dir).glob(pattern) 
+                    if file_validator.is_valid_file_path(str(f))]
         input_path = Path(input_dir)
-        # Separate patterns for .txt and .pdf
-        input_files = list(input_path.glob("*.txt")) + list(input_path.glob("*.pdf"))
+        patterns = file_pattern.split("|")
+        input_files = []
+        for pattern in patterns:
+            input_files.extend(list(input_path.glob(pattern)))
         total_files = len(input_files)
 
         if total_files == 0:
-            logging.warning(f"No files matching '*.txt' or '*.pdf' found in {input_dir}")
+            logging.warning(f"No files matching patterns {file_pattern} found in {input_dir}")
             return {"success": 0, "failed": 0, "total": 0}
 
         logging.info(f"Found {total_files} files to process")
@@ -75,9 +85,8 @@ class BatchProcessor:
         # Process files with thread pool
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             futures = {executor.submit(self.process_file, str(input_file), str(Path(output_dir) / f"{input_file.stem}.json")): input_file.name
-                       for input_file in input_files}
+                    for input_file in input_files}
 
-            # Process results as they complete
             for i, future in enumerate(concurrent.futures.as_completed(futures)):
                 file_name = futures[future]
                 try:
@@ -87,26 +96,22 @@ class BatchProcessor:
                     logging.error(f"Error processing {file_name}: {e}")
                     self.failed.append({"file": file_name, "error": str(e)})
 
-                # Report progress if callback is set
                 if self.progress_callback:
                     self.progress_callback(i + 1, total_files)
 
-        # Generate summary
         summary = {
             "success": len(self.results),
             "failed": len(self.failed),
             "total": total_files
         }
 
-        # Save summary to output directory
         summary_file = Path(output_dir) / "summary.json"
         with open(summary_file, "w") as f:
             json.dump(summary, f, indent=4)
 
         return summary
 
-
-    def process_file(self, input_file: str, output_file: str) -> Dict[str, Any]:
+    def processFile(self, inputFile: str, outputFile: str, instructionsFile: str) -> Dict[str, Any]:
         """
         Process a single file.
 
@@ -117,13 +122,17 @@ class BatchProcessor:
         Returns:
             Dict[str, Any]: Processed data.
         """
-        logging.info(f"Processing {input_file}")
+        logging.info(f"Processing {inputFile}")
 
         # Use the new read_file function
-        legal_text = read_file(input_file)
+        legalText = read_file(inputFile)
+        instructions = read_yaml_file(instructionsFile)
 
         # Generate prompt
-        prompt = generate_prompt(self.config, legal_text)
+        prompt = generatePromptFromYaml(instructions, legalText)
+        aiResponse = call_ai_model(prompt, self.api_key, self.model_name)
+        structuredData = validate_response(aiResponse, instructions)
+        save_json_file(structuredData, outputFile)
 
         # Call AI model
         ai_response = call_ai_model(prompt, self.api_key, self.model_name)
@@ -132,9 +141,9 @@ class BatchProcessor:
         structured_data = validate_response(ai_response, self.config)
 
         # Save output
-        save_json_file(structured_data, output_file)
+        save_json_file(structured_data, outputFile)
 
-        logging.info(f"Successfully processed {input_file} to {output_file}")
+        logging.info(f"Successfully processed {inputFile} to {outputFile}")
         return structured_data
 
 

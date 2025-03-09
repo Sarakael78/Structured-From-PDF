@@ -1,0 +1,172 @@
+title: Extracting Legal Information from Judgments for the LLM Project # Title of the instructions. 
+llmInstructions: # Instructions for extracting legal information from judgments for the LLM project. 
+  general: parse the provided pdf which is a South African Court judgment and provide structured information in yaml format as per the yamlDefinitions below # General instructions for extracting legal information from judgments.
+  output: yaml format in a code block # Instructions for the output format of the extracted legal information.
+  notes: | # Additional notes or considerations for extracting legal information from judgments.
+    - Be meticulous, do not leave out any information that is available in the judgment. 
+    - Ensure that all extracted information is accurate and correctly formatted.
+    - If any information is not available in the judgment, leave the corresponding field as an empty string or array. 
+    - Follow the LLM project guidelines and standards for extracting legal information from judgments in YAML format.
+    - If you have any questions or need clarification on any aspect of the instructions, ask the user.  
+
+yamlDefinitions: # Definitions for extracting legal information from judgments in YAML format.
+- caseDetails: # Extract the key details of the case. If any details are not available, leave as an empty string. 
+  - caseName: # Extract the name of the case. (e.g., Smith & Another v Jones & Others).
+    caseNumber:  # Extract the case number.
+    caseYear:  # Extract the year of the case number.
+    courtName:  # Extract the full court name, including division and city.
+    city:  # Extract the city where the court is located.
+    judge:  # Extract the judge's name. (e.g., Smith) Do not include , J or AJ etc.
+    judgeStatus:  # Determine if the judge is permanent or acting. (by use of aforementioned , J or AJ etc.)
+    datesHeard: # Extract the dates the case was heard. If multiple dates, add additional objects.
+    - date: # Extract the first date the case was heard.
+    # Add more date objects as needed
+    dateDelivered:  # Extract the date the judgment was delivered.
+    citations: # Extract the judgment citations, if available. If not available, leave as an empty array.
+    - citation:  # Extract the judgment citation, if available. If not available, leave as .
+    # Add more citation objects should the case have more than one citation reference assigned to it
+    caseType:  # Determine the type of case (e.g., civil trial, appeal, criminal trial, bail application, application, petition etc.).
+    subjectMatter:  # Extract the subject matter of the case (e.g., contract dispute, constitutional challenge, criminal appeal).
+    issues:  # Extract key issues or concerns addressed in the judgment.
+    keywords:  # Extract keywords or phrases related to the subject matter of the case.
+    tags:  # Extract any tags or labels associated with the case.
+    courtType:  # Extract the jurisdiction of the case (e.g., High Court, Supreme Court, Constitutional Court, Labour Court).
+    fieldsOfLaw:  # Extract the fields and sub fields of law of the case. If multiple fields and sub fields are involved, add additional objects. 
+    - field: # Extract the field of law of the case (e.g., civil, criminal, constitutional, administrative, commercial). 
+      - subField:  # Extract the sub-category of law applicable to the case (e.g., contract law, human rights, tax). 
+    # Add more field and subField objects as needed
+    outcome:  # Determine the outcome of the case (e.g., dismissed, granted, upheld, overturned).
+    reliefSought:  # Determine the relief sought by the parties (e.g., damages, injunction, declaratory order).
+    remedyGranted:  # Determine the remedy granted by the court (e.g., damages awarded, injunction granted, order issued).
+    costs:  # Determine the costs awarded by the court (e.g., costs awarded, no costs awarded, costs reserved).
+    summary:  # Provide a brief summary of the case and judgment.
+
+  innitiatingParties:
+  - partyName:  # Extract the party name. 
+    role:  # Extract the party role (e.g., applicant, appellant, plaintiff, petitioner, The State).
+    legalRepresentation: # Extract the legal representation of the party.
+      counsel: # Extract the legal counsel representing the party. If multiple counsel are involved, add additional objects.
+      - name: # Extract the first legal counsel representing the party, if available.
+      # Add more counsel objects as needed
+      attorneys: # Extract the attorney's details. If multiple attorneys are involved, add additional objects. 
+        firmName:  # Extract the name of the attorney's firm.
+        contactPerson:  # Extract the name of the contact person at the firm, if available.
+        address:  # Extract the address of the attorney's firm.
+        phone:  # Extract the phone number of the attorney's firm.
+        email:  # Extract the email address of the attorney's firm or contact person.
+  # Add more innitiatingParties objects as needed
+
+  respondingParties:
+    - partyName:  # Extract the party name. 
+      role: # Extract the party role (e.g., respondent, defendant, The State). 
+      legalRepresentation: # Extract the legal representation of the party. 
+      - counsel: # Extract the legal counsel representing the party. If multiple counsel are involved, add additional objects.
+        - counselName: # Extract the first legal counsel representing the party, if available.
+          counselName: # Extract the second legal counsel representing the party, if available.
+        # Add more counselName objects as needed
+        attorneys:  # Extract the attorney's details. If multiple attorneys are involved, add additional objects. 
+        - firmName:  # Extract the name of the attorney's firm.
+          contactPerson:  # Extract the name of the contact person at the firm, if available.
+          address:  # Extract the address of the attorney's firm.
+          phone:  # Extract the phone number of the attorney's firm.
+          email:  # Extract the email address of the attorney's firm or contact person.
+  # Add more respondingParties objects as needed
+
+  legalPrinciples: # Extract the key legal principles discussed in the judgment. Include the principle and its source (e.g., paragraph number or case citation). If none are mentioned, leave as an empty array.
+  - principle:  # Extract the name of the legal principle. 
+    principleExplanation:  # Provide an explanation or summary of the legal principle.
+    principleSource:  # Extract the source of the legal principle (paragraph number or case citation or legislation or regulation).
+  # Add more legal principle objects as needed
+
+  terms: # Extract any key legal terms mentioned in the judgment. Include the term and its definition. If none are mentioned, leave as an empty array.
+  - name:  # Identify the key legal term.
+    definition:  # Provide the definition of the key legal term.
+  # Add more term objects as needed
+
+  authorities:
+  - legislation: # Extract any legislation mentioned in the judgment. Include the name, citation, year, and subject. If none are mentioned, leave as an empty array.
+    - name:  # Extract the name of the legislation.
+      citation:  # Extract the citation of the legislation, if available. (e.g., Act No. 10 of 2000).
+      year: # Extract the year of the legislation, if available.
+      subject: # Extract the topic or subject matter of the legislation.
+    # Add more legislation objects as needed
+    referencedCases: # Extract any referenced cases mentioned in the judgment. Include the name, citation, year, court, judge, and subject matter and legal principles relied upon in the present judgment. If none are mentioned, leave as an empty array.
+    - case:  # Extract the name of the referenced case.
+      citation:  # Extract the citation of the referenced case. (e.g., 2000 (1) SA 123 (CC) - do not provide the case name again).
+      year:  # Extract the year of the referenced case, if available.
+      court:  # Extract the court of the referenced case, if available.
+      currentCourtName: # Provide the court name as it is currently known, if this has changed since the referenced case was decided (which has happened fairly often in South Africa).
+      judge: # Extract the name of the judge in the referenced case, if available.
+      subject: # Extract the subject matter of the referenced case, if available.
+      legalPrinciples: # Extract the legal principles from the cited case that are relied upon in the present judgment. Include the principle and its source (e.g., paragraph number), if available.
+      - principle: # Extract the first legal principle in the referenced case relied upon in the present judgment.
+        source: # Extract the source of the legal principle (paragraph number).
+      # Add more legalPrinciple objects as needed
+    # Add more referenced case objects as needed
+    regulations:  # Extract any regulations mentioned in the judgment. Include the name, legislation, citation, year, and subject. If none are mentioned, leave as an empty array.
+    - name:  # Extract the name of the regulation.
+      legislation: # Extract the legislation associated with the regulation.
+      citation:  # Extract the citation of the regulation, if available. (e.g., GN R. 1234 of 2000).
+      year:  # Extract the year of the regulation, if available.
+      subject:  # Extract the topic or subject matter of the regulation.
+    # Add more regulation objects as needed
+    internationalInstruments: # List any international instruments mentioned, if any. If none are mentioned, leave as an empty array.
+
+  evidence: # Extract the key evidence presented in the judgment. Include a summary of the evidence and its source (e.g., witness testimony or exhibit). If none are mentioned, leave as an empty array.
+  - oralevidence: # Extract the oral evidence presented in the judgment. Include the witness name, summary of evidence, and source (e.g., paragraph number).  
+    - witness: # Extract the name of the witness.
+      party: # Extract the party on whose behalf the witness gave evidence.
+      summary: # Summarise the key evidence presented.
+    # Add more oral evidence objects as needed
+    exhibit: # Extract any exhibits mentioned in the judgment. Include the name and description of the exhibit. If none are mentioned, leave as an empty array.
+    - label:  # Extract the name or label of the exhibit.
+      party:  # Extract the party on whose behalf the exhibit was presented.
+      description:  # Extract the description of the exhibit.
+      source:  # Extract the source of the exhibit (which witness gave evidence thereon, or if by agreement between parties).
+    # Add more exhibit objects as needed 
+    affidavit: # Extract any affidavits referred to in the judgment. Include the deponent, party, content, and paragraph number. If none are mentioned, leave as an empty array.
+    - deponent: # Extract the name of the deponent.
+      party: # Extract the party on whose behalf the affidavit was made.
+      content: # Extract the content of the affidavit relied upon in the judgment, if available.
+      paragraphNumber: # Extract the paragraph number of the affidavit, if available.
+    # Add more affidavit objects as needed
+
+  argument: # Extract the arguments made by the parties. Include the party, argument, and source (e.g., paragraph number). If none are mentioned, leave as an empty array.
+  - party:  # Extract the party making the argument.
+    argument:  # Extract the argument.
+    source:  # Extract the source of the argument (paragraph number).
+  # Add more argument objects as needed
+
+  nonTextualElements: # Identify any non-textual elements in the judgment, such as images, tables, or graphs.
+  - type:  # Identify the type of non-textual element (e.g., image, table).
+    location:  # Describe the location of the non-textual element (e.g., "Page 2, after paragraph 10").
+    description:  # Provide a brief description of the non-textual element.
+  # Add more non-textual element objects as needed
+
+  internalReferences: # Identify any internal references within the judgment, such as references to specific paragraphs or exhibits.
+
+  orders: # Extract the orders made by the court, including any cost orders.
+  - order: # Extract the order made by the court.
+    costOrder: # Determine if the order includes a cost order. 
+    costAmount: # Extract the amount of costs awarded, if applicable. 
+    costCurrency: # Extract the currency of the costs, if applicable. 
+    costTerms: # Extract any terms or conditions related to the costs, if applicable (ie jointly and severally liable).
+  # Add more order objects as needed
+
+  judgmentDetails:  # Extract the details of the judgment, such as the date handed down, time, and method of delivery.
+  - dateHandedDown:  # Extract the date the judgment was handed down.
+    timeHandedDown:  # Extract the time the judgment was handed down.
+    methodHandedDown:  # Extract the method of delivery (e.g., handed down electronically).
+
+  additionalInformation:  # Include any other relevant information, such as background details or interesting observations.
+
+  paragraphs: # Extract the paragraphs of the judgment. Include the paragraph number, text, and any footnotes. If none are mentioned, leave as an empty array.
+    - paragraphNumber:  # Extract the paragraph number.
+      text:  # Extract the paragraph text.
+      footnotes: # Extract any footnote numbers within the paragraph, if available.
+  # Add more paragraph objects as needed
+
+  footnotes: # Extract any footnotes mentioned in the judgment. Include the footnote number and text. If none are mentioned, leave as an empty array.
+    - footnoteNumber:  # Extract the footnote number.
+      text:  # Extract the footnote text.
+  # Add more footnote objects as needed
